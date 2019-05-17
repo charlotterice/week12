@@ -29,18 +29,16 @@ connection.query("SELECT * FROM products", function (error, results, fields) {
       message: "Enter ID to purchase by Product ID: ",
       name: "id"
     },
-    // Here we create a basic password-protected text prompt.
     {
-      type: "password",
-      message: "Set your password",
-      name: "password"
+      type: "number",
+      message: "Please type select quantity (must be a number)",
+      name: "quantity"
     },
-    // Here we give the user a list to choose from.
     {
-      type: "list",
-      message: "Which Pokemon do you choose?",
-      choices: ["Bulbasaur", "Squirtle", "Charmander"],
-      name: "pokemon"
+      type: "confirm",
+      message: "Confirm quantity selection",
+      name: "confirm",
+      default: true
     },
     // Here we ask the user to confirm.
     {
