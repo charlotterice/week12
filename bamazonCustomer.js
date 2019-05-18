@@ -58,7 +58,7 @@ connection.query("SELECT * FROM products", function (error, results, fields) {
 
 
   if (item.stock_quantity < parseInt(inquirerResponse.quantity)) {
-    console.log(" Insufficient quantity!");
+    console.log(" Insufficient stock! Please select " + item.stock_quantity + " or fewer");
   }
  
   else {
