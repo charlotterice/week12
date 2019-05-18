@@ -7,6 +7,11 @@ var connection = mysql.createConnection({
   password: "Westpoint19!",
   database: "bamazon"
 });
+var Table = require('cli-table');
+var table = new Table({
+  head: ['Item ID', 'Item', 'Price', 'Qnty'],
+  colWidths: [20, 40, 15, 15]
+});
 
 connection.connect(function(err) {
   if (err) throw err;
@@ -19,10 +24,13 @@ function beginSale(){
 connection.query("SELECT * FROM products", function (error, results, fields) {
   if (error) throw error;
   console.log("Welcome to my Bamazon Store");
-
-  for(var i=0;i<results.length;i++){
-    console.log("Product ID: " + results[i].id + "|" + "Item: " + results[i].product_name + "|" + "Category: " + results[i].department_name + "|" + "Price: "+ results[i].price + "|" + "Only " + results[i].stock_quantity + " left in stock");
+  for (var i = 0; i < results.length; i++) {
+    table.push([results[i].id, results[i].product_name, results[i].price.toFixed(2), results[i].stock_quantity])
   }
+  console.log(table.toString());
+  // for(var i=0;i<results.length;i++){
+  //   console.log("Product ID: " + results[i].id + "|" + "Item: " + results[i].product_name + "|" + "Category: " + results[i].department_name + "|" + "Price: "+ results[i].price + "|" + "Only " + results[i].stock_quantity + " left in stock");
+  // }
   inquirer
   .prompt([
     {
@@ -41,21 +49,15 @@ connection.query("SELECT * FROM products", function (error, results, fields) {
           return false;
         }
         }
-    },
-    {
-      type: "confirm",
-      message: "Confirm quantity selection",
-      name: "confirm",
-      default: true
     }
   ])
   .then(function(inquirerResponse) {
     for (vari=0;i<results.length;i++){
-      if (results[i].product_name==inquirerResponse.id){
+      if (results[i].id == inquirerResponse.id){
       var item = results[i];
     }
   }
-  var updateStock = parseInt(item.stock_quantity)-parseInt(inquirerResponse.quantity);
+  var updateStock = parseInt(item.stock_quantity)-parseInt(inquirerResponse.stock_quantity);
   var sales = parseFloat(item.product_sales).toFixed(2);
 
   if (item.stock_quantity < parseInt(inquirerResponse.quantity)) {
@@ -67,8 +69,8 @@ connection.query("SELECT * FROM products", function (error, results, fields) {
 
     // Challenge 3 logic. Get total from new purchase, fetch current sales from table and add together.
     var Total = (parseFloat(inquirerResponse.quantity) * item.price).toFixed(2);
-    var pTotal = (parseFloat(Total) + parseFloat(pSales)).toFixed(2);
-    var query = connection.query("UPDATE Products SET ?, ? WHERE ?", [{ stock_quantity: updateStock }, { product_sales: pTotal }, { item_id: chosenItem.item_id }], function (err, res) {
+    var pTotal = (parseFloat(Total) + parseFloat(sales)).toFixed(2);
+    var query = connection.query("UPDATE Products SET ?, ? WHERE ?", [{ stock_quantity: updateStock }, { product_sales: pTotal }, { item_id: item.item_id }], function (err, res) {
       if (err) throw err;
       console.log("Your Order is Processed!");
       console.log("Your total is $ " + Total);
@@ -76,11 +78,11 @@ connection.query("SELECT * FROM products", function (error, results, fields) {
     });
   }
 
-}); // .then of inquirer prompt
+}); // .then 
 
-}); // first connection.query of the database
+}); // first connection.query
 
-} // goShopping function
+} // beginSale function
 
 //Function used to make the experience of the CLI mode like a program. Provides an exit choice to the user.
 function repeat() {
