@@ -11,8 +11,9 @@ var connection = mysql.createConnection({
 connection.connect(function(err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId);
-  beginSale();
 });
+
+beginSale();
 
 function beginSale(){
 connection.query("SELECT * FROM products", function (error, results, fields) {
@@ -27,39 +28,75 @@ connection.query("SELECT * FROM products", function (error, results, fields) {
     {
       type: "input",
       message: "Enter ID to purchase by Product ID: ",
-      name: "id"
+      name: "id",
     },
     {
       type: "number",
       message: "Please type select quantity (must be a number)",
-      name: "quantity"
+      name: "quantity",
+      validate: function (value){
+        if (isNaN(value)==false){
+          return true;
+        } else{
+          return false;
+        }
+        }
     },
     {
       type: "confirm",
       message: "Confirm quantity selection",
       name: "confirm",
       default: true
-    },
-    // Here we ask the user to confirm.
-    {
-      type: "confirm",
-      message: "Are you sure:",
-      name: "confirm",
-      default: true
     }
   ])
   .then(function(inquirerResponse) {
-    // If the inquirerResponse confirms, we displays the inquirerResponse's username and pokemon from the answers.
-    if (inquirerResponse.confirm) {
-      console.log("\nWelcome " + inquirerResponse.username);
-      console.log("Your " + inquirerResponse.pokemon + " is ready for battle!\n");
+    for (vari=0;i<results.length;i++){
+      if (results[i].product_name==inquirerResponse.id){
+      var item = results[i];
     }
-    else {
-      console.log("\nThat's okay " + inquirerResponse.username + ", come again when you are more sure.\n");
-    }
-  });
+  }
+  var updateStock = parseInt(item.stock_quantity)-parseInt(inquirerResponse.quantity);
+  var sales = parseFloat(item.product_sales).toFixed(2);
 
+  if (item.stock_quantity < parseInt(inquirerResponse.quantity)) {
+    console.log(" Insufficient quantity!");
+    repeat();
+  }
+ 
+  else {
+
+    // Challenge 3 logic. Get total from new purchase, fetch current sales from table and add together.
+    var Total = (parseFloat(inquirerResponse.quantity) * item.price).toFixed(2);
+    var pTotal = (parseFloat(Total) + parseFloat(pSales)).toFixed(2);
+    var query = connection.query("UPDATE Products SET ?, ? WHERE ?", [{ stock_quantity: updateStock }, { product_sales: pTotal }, { item_id: chosenItem.item_id }], function (err, res) {
+      if (err) throw err;
+      console.log("Your Order is Processed!");
+      console.log("Your total is $ " + Total);
+      repeat();
+    });
+  }
+
+}); // .then of inquirer prompt
+
+}); // first connection.query of the database
+
+} // goShopping function
+
+//Function used to make the experience of the CLI mode like a program. Provides an exit choice to the user.
+function repeat() {
+inquirer.prompt({
+// Ask user if he wants to purchase another item
+name: "repurchase",
+type: "list",
+choices: ["Yes", "No"],
+message: "Would you like to purchase another item?"
+}).then(function (answer) {
+if (answer.repurchase == "Yes") {
+  beginSale();
+}
+else {
+  console.log("Thank you for shopping with us. Have a great day!")
   connection.end();
+}
 });
 }
- 
